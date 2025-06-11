@@ -3,7 +3,7 @@
 
 pipeline {
     // Specifies where the pipeline will run. 'any' means it can run on any available agent.
-    agent any
+    agent {label 'application'}
 
     // Define environment variables that will be available throughout the pipeline
     environment {
