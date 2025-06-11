@@ -24,7 +24,7 @@ pipeline {
                 // 'url': The URL of your GitLab repository
                 git branch: 'main', 
                     credentialsId: 'gitlab', // <<--- IMPORTANT: REPLACE THIS
-                    url: 'https://gitlab.com/your-gitlab-username/your-repo-name.git' // <<--- IMPORTANT: REPLACE THIS
+                    url: 'https://gitlab.com/dgruploads/Gitlab_Jenkins_collab.git' // <<--- IMPORTANT: REPLACE THIS
                 echo "Code checked out successfully."
             }
         }
