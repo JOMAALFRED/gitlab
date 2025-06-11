@@ -2,4 +2,5 @@
 1. Git should be installed => sudo apt install git -y
 2. Docker should be installed => sudo apt install docker.io -y
 3. Start the Docker service => sudo service docker status
+4. Set the permissions on /var/run/docker.sock => chmod 777 /var/run/docker.sock
 4. Java should be installed => sudo apt install fontconfig openjdk-21-jre -y
