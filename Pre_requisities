@@ -1,0 +1,5 @@
+### Pre_requisities on the application server ###
+1. Git should be installed => sudo apt install git -y
+2. Docker should be installed => sudo apt install docker.io -y
+3. Start the Docker service => sudo service docker status
+4. Java should be installed => sudo apt install fontconfig openjdk-21-jre -y
