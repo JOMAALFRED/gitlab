@@ -42,6 +42,22 @@ pipeline {
             }
         }
 
+        stage('Login to Docker Hub') {
+            steps {
+                echo "--- Logging in to Docker Hub ---"
+                script {
+                    // Uses the 'withCredentials' binding to securely access Docker Hub credentials
+                    // 'dockerhub-credentials' must be a 'Username with password' type credential in Jenkins
+                    withCredentials([usernamePassword(credentialsId: 'dockerhub-credentials', passwordVariable: 'DOCKER_PASSWORD', usernameVariable: 'DOCKER_USERNAME')]) {
+                        sh "echo \"$DOCKER_PASSWORD\" | docker login -u \"$DOCKER_USERNAME\" --password-stdin"
+                    }
+                }
+                echo "Logged in to Docker Hub."
+            }
+        }
+
+        
+
         stage('Stop and Remove Old Container (if exists)') {
             steps {
                 echo "--- Stopping and removing old container (if present) ---"
