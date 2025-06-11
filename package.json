@@ -1,0 +1,23 @@
+// package.json
+{
+  "name": "cicd-demo-app",
+  "version": "1.0.0",
+  "description": "A simple Node.js app for CI/CD demo with Jenkins and GitLab",
+  "main": "app.js",
+  "scripts": {
+    "start": "node app.js"
+  },
+  "dependencies": {
+    "express": "^4.19.2"
+  },
+  "keywords": [
+    "nodejs",
+    "express",
+    "docker",
+    "ci-cd",
+    "jenkins",
+    "gitlab"
+  ],
+  "author": "Your Name/Organization",
+  "license": "MIT"
+}
