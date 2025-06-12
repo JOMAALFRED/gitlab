@@ -66,7 +66,7 @@ pipeline {
                 echo "--- Pushing Docker image to Docker Hub ---"
                 script {
                     // Pushes the built image to Docker Hub
-                    sh "docker image push ${DOCKER_IMAGE}"
+                    sh "docker image push dgruploads/${DOCKER_IMAGE}"
                 }
                 echo "Docker image ${DOCKER_IMAGE} pushed to Docker Hub."
             }
