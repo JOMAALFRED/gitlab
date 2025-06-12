@@ -56,7 +56,21 @@ pipeline {
             }
         }
 
-        
+        stage('Tag and Push Docker Image to Docker Hub') {
+            steps {
+                echo "--- Tagging the Docker image ---"
+                script {
+                    sh "docker image tag ${DOCKER_IMAGE} dgruploads/${DOCKER_IMAGE}"
+                }
+
+                echo "--- Pushing Docker image to Docker Hub ---"
+                script {
+                    // Pushes the built image to Docker Hub
+                    sh "docker image push ${DOCKER_IMAGE}"
+                }
+                echo "Docker image ${DOCKER_IMAGE} pushed to Docker Hub."
+            }
+        }
 
         stage('Stop and Remove Old Container (if exists)') {
             steps {
