@@ -3,4 +3,6 @@
 2. Docker should be installed => sudo apt install docker.io -y
 3. Start the Docker service => sudo service docker status
 4. Set the permissions on /var/run/docker.sock => chmod 777 /var/run/docker.sock
-4. Java should be installed => sudo apt install fontconfig openjdk-21-jre -y
+5. Java should be installed => sudo apt install fontconfig openjdk-21-jre -y
+6. Webhook URL format => https://<jenkins-user>:<jenkins-api-token>@<jenkins-host>/job/<job-name>/build
+7. Set DockerHub creds in jenkins
