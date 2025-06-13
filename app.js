@@ -4,7 +4,7 @@ const app = express();
 const port = 3000;
 
 // This version will be updated in the demo to show the CI/CD working
-const appVersion = "1.0"; 
+const appVersion = "2.0"; 
 
 app.get('/', (req, res) => {
   res.send(`
