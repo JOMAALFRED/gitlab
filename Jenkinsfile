@@ -13,7 +13,7 @@ triggers {
     IMAGE_NAME           = 'reactjs-app'
     BRANCH               = "${(env.BRANCH_NAME ?: 'main').replaceAll('[^A-Za-z0-9]', '-').toLowerCase()}"
     REACT_IMAGE          = "${IMAGE_NAME}:${BRANCH}-${BUILD_NUMBER}"
-    APP_PORT             = "${BRANCH == 'main' ? '8081' : '8082'}"
+    APP_PORT             = "${BRANCH == 'main' ? '3000' : '3001'}"
     COMPOSE_PROJECT_NAME                                                            = "reactjs-${BRANCH}"
   }
 
