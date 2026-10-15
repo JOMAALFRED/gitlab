@@ -1,10 +1,12 @@
 pipeline {
     agent any
 
-    /*triggers {
+    /*
+    triggers {
         pollSCM('* * * * *')
     }
-*/
+    */
+
     options {
         timestamps()
         disableConcurrentBuilds()
@@ -12,16 +14,20 @@ pipeline {
 
     environment {
         IMAGE_NAME  = 'app-js'
+        // Nettoyage du nom de branche pour convenir aux tags Docker
         BRANCH      = "${(env.BRANCH_NAME ?: 'main').replaceAll('[^A-Za-z0-9]', '-').toLowerCase()}"
         REACT_IMAGE = "${IMAGE_NAME}:${BRANCH}-${BUILD_NUMBER}"
+        APP_PORT    = '8080' // Définition de la variable manquante
     }
 
     stages {
 
         stage('1. Security Scan (Semgrep)') {
             steps {
-                // Ignore l'échec de Semgrep si une règle bloque pour continuer la chaîne
-                sh 'semgrep --config auto --error . || true'
+                catchError(buildResult: 'SUCCESS', stageResult: 'UNSTABLE') {
+                    // Analyse SAST du code source
+                    sh 'semgrep --config auto --error .'
+                }
             }
         }
 
@@ -35,13 +41,17 @@ pipeline {
 
         stage('3. Scan image et dépendances') {
             steps {
-                sh '''
-                    docker run --rm -v /var/run/docker.sock:/var/run/docker.sock aquasec/trivy:latest \
-                        image --exit-code 0 --severity HIGH,CRITICAL $REACT_IMAGE || true
-                    docker run --rm --volumes-from jenkins owasp/dependency-check:latest \
-                        --scan "$PWD" --failOnCVSS 9 --noupdate || true
-                '''
-                sh 'pwd'
+                catchError(buildResult: 'SUCCESS', stageResult: 'UNSTABLE') {
+                    sh '''
+                        # Scan de l'image Docker avec Trivy
+                        docker run --rm -v /var/run/docker.sock:/var/run/docker.sock aquasec/trivy:0.50.0 \
+                            image --exit-code 1 --severity HIGH,CRITICAL $REACT_IMAGE
+
+                        # Scan des dépendances avec OWASP Dependency-Check
+                        docker run --rm -v "$PWD":/src owasp/dependency-check:latest \
+                            --scan /src --failOnCVSS 9 --noupdate
+                    '''
+                }
             }
         }
     
@@ -57,7 +67,9 @@ pipeline {
             }
             steps {
                 script {
-                    def composeFile = "docker-compose.${env.BRANCH}.yml"
+                    // Correction : Utilisation de la variable BRANCH définie dans environment
+                    def composeFile = "docker-compose.${BRANCH}.yml"
+                    
                     if (!fileExists(composeFile)) {
                         echo "Fichier ${composeFile} introuvable, utilisation de docker-compose.yml"
                         composeFile = 'docker-compose.yml'
@@ -68,16 +80,16 @@ pipeline {
                         docker compose -f ${composeFile} ps
                     """
                 }
-                sh 'pwd'
             }
         }
     }
 
     post {
         success {
-            echo "Pipeline OK : ${env.REACT_IMAGE} (branche ${env.BRANCH}, port ${env.APP_PORT})"
+            echo "Pipeline OK : ${env.REACT_IMAGE} (branche ${BRANCH}, port ${env.APP_PORT})"
         }
         failure {
             echo 'Pipeline en échec, voir le stage rouge.'
         }
     }
+}
