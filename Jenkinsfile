@@ -71,7 +71,7 @@ pipeline {
                 sh 'pwd'
             }
         }
-    }
+        
 
     post {
         success {
