@@ -63,7 +63,7 @@ pipeline {
                         composeFile = 'docker-compose.yml'
                     }
 
-                    /sh """
+                    sh """
                         docker compose -f ${composeFile} up -d --remove-orphans
                         docker compose -f ${composeFile} ps
                     """
