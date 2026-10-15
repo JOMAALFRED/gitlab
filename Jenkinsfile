@@ -11,7 +11,7 @@ pipeline {
     }
 
     environment {
-        IMAGE_NAME  = 'reactjs-app'
+        IMAGE_NAME  = 'app-js'
         BRANCH      = "${(env.BRANCH_NAME ?: 'main').replaceAll('[^A-Za-z0-9]', '-').toLowerCase()}"
         REACT_IMAGE = "${IMAGE_NAME}:${BRANCH}-${BUILD_NUMBER}"
     }
