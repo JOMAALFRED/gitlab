@@ -23,7 +23,6 @@ pipeline {
     stages {
 
         stage('1. Security Scan (Semgrep)') {
-
             steps {
                   catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
                   sh 'docker run --rm --volumes-from jenkins -w "$WORKSPACE" semgrep/semgrep semgrep --config auto --error .'
