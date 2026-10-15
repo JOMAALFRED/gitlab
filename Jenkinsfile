@@ -37,10 +37,11 @@ triggers {
       }
    }*/
 
-    stage('2. Docker build') {
+   stage('2. Docker build') {
       steps {
-        sh ' pwd '
-        sh 'docker build -t $REACT_IMAGE ./reactjs-app'
+        sh 'pwd'
+        // Remplacer ./reactjs-app par .
+        sh 'docker build -t $REACT_IMAGE .'
       }
     }
 
@@ -48,33 +49,46 @@ triggers {
       steps {
         sh '''
           docker run --rm -v /var/run/docker.sock:/var/run/docker.sock aquasec/trivy:latest \
-            image --exit-code 0 --severity HIGH,CRITICAL $REACT_IMAGE
+          image --exit-code 0 --severity HIGH,CRITICAL $REACT_IMAGE || true
           docker run --rm --volumes-from jenkins owasp/dependency-check:latest \
-            --scan "$PWD" --failOnCVSS 9 --noupdate || true
+          --scan "$PWD" --failOnCVSS 9 --noupdate || true
         '''
         sh ' pwd '
       }
     }
 
     stage('4. Déploiement Compose') {
-      when {
+    when {
         allOf {
-          not { changeRequest() }
-          anyOf {
-            branch 'main'
-            branch 'develop'
-          }
+            not { changeRequest() }
+            anyOf {
+                branch 'main'
+                branch 'develop'
+            }
         }
-      }
-      steps {
-        sh '''
-          docker compose -f docker-compose.$BRANCH.yml up -d --remove-orphans
-          docker compose -f docker-compose.$BRANCH.yml ps
-        '''
-        sh ' pwd '
-      }
     }
-  }
+    steps {
+        script {
+            // Détermine le nom du fichier compose selon la branche (ex: docker-compose.main.yml ou docker-compose.yml)
+            def composeFile = "docker-compose.${env.BRANCH}.yml"
+            def fileExists = fileExists(composeFile)
+            
+            // Si le fichier spécifique à la branche n'existe pas, utilise le docker-compose.yml par défaut
+            if (!fileExists) {
+                echo "Le fichier ${composeFile} n'existe pas, bascule sur docker-compose.yml"
+                composeFile = 'docker-compose.yml'
+            }
+
+            echo "Déploiement en cours avec ${composeFile}..."
+
+            sh """
+                docker compose -f ${composeFile} up -d --remove-orphans
+                docker compose -f ${composeFile} ps
+            """
+        }
+        sh 'pwd'
+    }
+}
 
   post {
     success { echo "Pipeline OK : $REACT_IMAGE (branche $BRANCH, port $APP_PORT)" }
