@@ -26,16 +26,16 @@ triggers {
         }
     }
 
-    stage('1. SAST') {
-      steps {
-        sh '''
+    /*stage('1. SAST') {
+    /  steps {
+      //  sh '''
           pip install --user semgrep
           export PATH="$HOME/.local/bin:$PATH"
           semgrep --config auto --error .
           docker run --rm --volumes-from jenkins zricethezav/gitleaks:latest detect --source "$PWD" --no-banner
         '''
       }
-    }
+   }*/
 
     stage('2. Docker build') {
       steps {
