@@ -81,4 +81,3 @@ pipeline {
             echo 'Pipeline en échec, voir le stage rouge.'
         }
     }
-}
