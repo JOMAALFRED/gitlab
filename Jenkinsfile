@@ -14,10 +14,17 @@ triggers {
     BRANCH               = "${(env.BRANCH_NAME ?: 'main').replaceAll('[^A-Za-z0-9]', '-').toLowerCase()}"
     REACT_IMAGE          = "${IMAGE_NAME}:${BRANCH}-${BUILD_NUMBER}"
     APP_PORT             = "${BRANCH == 'main' ? '3000' : '3001'}"
-    COMPOSE_PROJECT_NAME                                                            = "reactjs-${BRANCH}"
+    COMPOSE_PROJECT_NAME = "reactjs-${BRANCH}"
   }
 
   stages {
+
+    stage('Security Scan (Semgrep)') {
+      steps {
+          // En ajoutant '|| true', Jenkins ignore l'échec de Semgrep et continue le build
+          sh 'semgrep --config auto --error . || true'
+        }
+    }
 
     stage('1. SAST') {
       steps {

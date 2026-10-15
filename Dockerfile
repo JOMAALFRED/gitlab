@@ -18,5 +18,8 @@ COPY . .
 # Expose the port the app runs on
 EXPOSE 3000
 
+# ty le nampina : Passer sur un utilisateur non-root avant l'exécution
+USER node 
+
 # Command to run the application
 CMD [ "npm", "start" ]
