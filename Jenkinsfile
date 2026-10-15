@@ -23,18 +23,13 @@ pipeline {
     stages {
 
         stage('1. Security Scan (Semgrep)') {
-           steps {
-                    catchError(buildResult: 'SUCCESS', stageResult: 'UNSTABLE') {
-                        sh '''
-                             python3 -m pip install --user semgrep
-                             export PATH="$HOME/.local/bin:$PATH"
 
-                             semgrep --version
-                             semgrep --config auto --error .
-                          '''
-                    }
-                }
-        }
+            steps {
+                  catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
+                  sh 'docker run --rm --volumes-from jenkins -w "$WORKSPACE" semgrep/semgrep semgrep --config auto --error .'
+                 }
+             }
+       }
 
         stage('2. Docker build') {
             steps {
