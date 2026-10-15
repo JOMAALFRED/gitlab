@@ -11,18 +11,16 @@ pipeline {
     }
 
     environment {
-        IMAGE_NAME           = 'reactjs-app'
-        BRANCH               = "${(env.BRANCH_NAME ?: 'main').replaceAll('[^A-Za-z0-9]', '-').toLowerCase()}"
-        REACT_IMAGE          = "${IMAGE_NAME}:${BRANCH}-${BUILD_NUMBER}"
-        APP_PORT             = "${BRANCH == 'main' ? '3000' : '3001'}"
-        COMPOSE_PROJECT_NAME = "reactjs-${BRANCH}"
+        IMAGE_NAME  = 'reactjs-app'
+        BRANCH      = "${(env.BRANCH_NAME ?: 'main').replaceAll('[^A-Za-z0-9]', '-').toLowerCase()}"
+        REACT_IMAGE = "${IMAGE_NAME}:${BRANCH}-${BUILD_NUMBER}"
     }
 
     stages {
 
-        stage('Security Scan (Semgrep)') {
+        stage('1. Security Scan (Semgrep)') {
             steps {
-                // Ignore l'échec de Semgrep si l'outil n'est pas trouvé ou s'il y a une alerte
+                // Ignore l'échec de Semgrep si une règle bloque pour continuer la chaîne
                 sh 'semgrep --config auto --error . || true'
             }
         }
@@ -30,7 +28,7 @@ pipeline {
         stage('2. Docker build') {
             steps {
                 sh 'pwd'
-                // Build depuis la racine du projet (remplace ./reactjs-app par .)
+                // Construction de l'image Docker à partir du répertoire racine (.)
                 sh 'docker build -t $REACT_IMAGE .'
             }
         }
@@ -46,7 +44,7 @@ pipeline {
                 sh 'pwd'
             }
         }
-
+    }
         /*stage('4. Déploiement Compose') {
             when {
                 allOf {
