@@ -45,7 +45,7 @@ pipeline {
             }
         }
     }
-        /*stage('4. Déploiement Compose') {
+        stage('4. Déploiement Compose') {
             when {
                 allOf {
                     not { changeRequest() }
@@ -71,7 +71,7 @@ pipeline {
                 sh 'pwd'
             }
         }
-    }*/
+    }
 
     post {
         success {
