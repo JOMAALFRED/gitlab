@@ -44,7 +44,7 @@ pipeline {
                 sh 'pwd'
             }
         }
-    }
+    
         stage('4. Déploiement Compose') {
             when {
                 allOf {
@@ -71,7 +71,7 @@ pipeline {
                 sh 'pwd'
             }
         }
-        
+    }
 
     post {
         success {
