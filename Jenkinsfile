@@ -1,101 +1,81 @@
 pipeline {
-    agent any
+  agent any
 
-    /*
-    triggers {
-        pollSCM('* * * * *')
-    }
-    */
+  options {
+    timestamps()
+    disableConcurrentBuilds()
+  }
 
-    options {
-        timestamps()
-        disableConcurrentBuilds()
-    }
+  environment {
+    IMAGE_NAME  = 'app-js'
+    BRANCH      = "${(env.BRANCH_NAME ?: 'main').replaceAll('[^A-Za-z0-9]', '-').toLowerCase()}"
+    REACT_IMAGE = "${IMAGE_NAME}:${BRANCH}-${BUILD_NUMBER}"
+    APP_PORT    = '8083'
+  }
 
-    environment {
-        IMAGE_NAME  = 'app-js'
-        // Nettoyage du nom de branche pour convenir aux tags Docker
-        BRANCH      = "${(env.BRANCH_NAME ?: 'main').replaceAll('[^A-Za-z0-9]', '-').toLowerCase()}"
-        REACT_IMAGE = "${IMAGE_NAME}:${BRANCH}-${BUILD_NUMBER}"
-        APP_PORT    = '8080' // Définition de la variable manquante
-    }
+  stages {
 
-    stages {
-
-        stage('1. Security Scan (Semgrep)') {
-           steps {
-              catchError(buildResult: 'SUCCESS', stageResult: 'UNSTABLE') {
-              sh '''
-                 python3 -m pip install --user semgrep
-                 export PATH="$HOME/.local/bin:$PATH"
-
-                 semgrep --version
-                 semgrep --config auto --error .
-               '''
-              }
-           }
-       }
-
-        stage('2. Docker build') {
-            steps {
-                sh 'pwd'
-                // Construction de l'image Docker à partir du répertoire racine (.)
-                sh 'docker build -t $REACT_IMAGE .'
-            }
+    stage('1. Security Scan (Semgrep)') {
+      steps {
+        catchError(buildResult: 'SUCCESS', stageResult: 'UNSTABLE') {
+          sh '''
+            docker run --rm --volumes-from jenkins -w "$PWD" semgrep/semgrep:latest \
+              semgrep --config auto --error --exclude node_modules .
+          '''
         }
-
-        stage('3. Scan image et dépendances') {
-             steps {
-                 script {
-                 sh """
-                       docker run --rm \
-                       -v /var/run/docker.sock:/var/run/docker.sock \
-                       aquasec/trivy:0.69.3 \
-                       image \
-                       --exit-code 1 \
-                       --severity HIGH,CRITICAL \
-                       --ignore-unfixed \
-                       ${REACT_IMAGE}
-                    """
-                  }
-               }
-           }
-    
-        stage('4. Déploiement Compose') {
-            when {
-                allOf {
-                    not { changeRequest() }
-                    anyOf {
-                        branch 'main'
-                        branch 'develop'
-                    }
-                }
-            }
-            steps {
-                script {
-                    // Correction : Utilisation de la variable BRANCH définie dans environment
-                    def composeFile = "docker-compose.${BRANCH}.yml"
-                    
-                    if (!fileExists(composeFile)) {
-                        echo "Fichier ${composeFile} introuvable, utilisation de docker-compose.yml"
-                        composeFile = 'docker-compose.yml'
-                    }
-
-                    sh """
-                        docker compose -f ${composeFile} up -d --remove-orphans
-                        docker compose -f ${composeFile} ps
-                    """
-                }
-            }
-        }
+      }
     }
 
-    post {
-        success {
-            echo "Pipeline OK : ${env.REACT_IMAGE} (branche ${BRANCH}, port ${env.APP_PORT})"
-        }
-        failure {
-            echo 'Pipeline en échec, voir le stage rouge.'
-        }
+    stage('2. Docker build') {
+      steps {
+        sh 'docker build -t $REACT_IMAGE .'
+      }
     }
+
+    stage('3. Scan image et dependances') {
+      steps {
+        catchError(buildResult: 'SUCCESS', stageResult: 'UNSTABLE') {
+          sh '''
+            docker run --rm -v /var/run/docker.sock:/var/run/docker.sock aquasec/trivy:0.50.0 \
+              image --exit-code 1 --severity HIGH,CRITICAL $REACT_IMAGE
+          '''
+        }
+        catchError(buildResult: 'SUCCESS', stageResult: 'UNSTABLE') {
+          sh '''
+            docker run --rm --volumes-from jenkins -w "$PWD" node:22-alpine npm audit --audit-level=high
+          '''
+        }
+      }
+    }
+
+    stage('4. Deploiement Compose') {
+      when {
+        allOf {
+          not { changeRequest() }
+          anyOf {
+            branch 'main'
+            branch 'develop'
+          }
+        }
+      }
+      steps {
+        script {
+          def composeFile = "docker-compose.${BRANCH}.yml"
+          if (!fileExists(composeFile)) {
+            echo "Fichier ${composeFile} introuvable, utilisation de docker-compose.yml"
+            composeFile = 'docker-compose.yml'
+          }
+          sh """
+            docker compose -f ${composeFile} up -d --remove-orphans
+            docker compose -f ${composeFile} ps
+          """
+        }
+      }
+    }
+  }
+
+  post {
+    success { echo "Pipeline OK : ${env.REACT_IMAGE} (branche ${BRANCH}, port ${env.APP_PORT})" }
+    failure { echo 'Pipeline en echec, voir le stage rouge.' }
+  }
 }
