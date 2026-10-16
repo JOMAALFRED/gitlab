@@ -1,25 +1,25 @@
-# Dockerfile
-# Use a slim Node.js base image for smaller size
-FROM node:18-alpine
+FROM node:22-alpine
 
-# Set the working directory inside the container
+# Mettre à jour npm pour corriger les vulnérabilités
+# de ses dépendances intégrées, lorsque des correctifs existent
+RUN npm install --global npm@latest
+
 WORKDIR /app
 
-# Copy package.json and package-lock.json (if exists) to the working directory
-# We copy these first to leverage Docker's build cache
 COPY package*.json ./
 
-# Install application dependencies
-RUN npm install
+# RUN npm ci --omit=dev
+RUN npm ci --omit=dev \
+    && npm cache clean --force \
+    && rm -rf /usr/local/lib/node_modules/npm \
+              /usr/local/bin/npm \
+              /usr/local/bin/npx
 
-# Copy the rest of the application code
 COPY . .
 
-# Expose the port the app runs on
 EXPOSE 3000
 
-# ty le nampina : Passer sur un utilisateur non-root avant l'exécution
-USER node 
+USER node
 
-# Command to run the application
-CMD [ "npm", "start" ]
+#CMD ["npm", "start"]
+CMD ["node", "app.js"]

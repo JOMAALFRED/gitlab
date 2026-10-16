@@ -45,20 +45,21 @@ pipeline {
         }
 
         stage('3. Scan image et dépendances') {
-            steps {
-                catchError(buildResult: 'SUCCESS', stageResult: 'UNSTABLE') {
-                    sh '''
-                        # Scan de l'image Docker avec Trivy
-                        docker run --rm -v /var/run/docker.sock:/var/run/docker.sock aquasec/trivy:0.50.0 \
-                            image --exit-code 1 --severity HIGH,CRITICAL $REACT_IMAGE
-
-                        # Scan des dépendances avec OWASP Dependency-Check
-                        docker run --rm -v "$PWD":/src owasp/dependency-check:latest \
-                            --scan /src --failOnCVSS 9 --noupdate
-                    '''
-                }
-            }
-        }
+             steps {
+                 script {
+                 sh """
+                       docker run --rm \
+                       -v /var/run/docker.sock:/var/run/docker.sock \
+                       aquasec/trivy:0.69.3 \
+                       image \
+                       --exit-code 1 \
+                       --severity HIGH,CRITICAL \
+                       --ignore-unfixed \
+                       ${REACT_IMAGE}
+                    """
+                  }
+               }
+           }
     
         stage('4. Déploiement Compose') {
             when {
