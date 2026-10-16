@@ -1,0 +1,20 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: gitlab-main
+  namespace: argocd
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/JOMAALFRED/gitlab.git
+    targetRevision: main
+    path: k8s/main
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: gitlab-main
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
