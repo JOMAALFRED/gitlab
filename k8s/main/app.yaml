@@ -9,7 +9,7 @@ metadata:
   name: app-js
   namespace: gitlab-main
 spec:
-  replicas: 2
+  replicas: 4
   selector:
     matchLabels:
       app: app-js
