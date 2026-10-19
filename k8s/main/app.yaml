@@ -20,7 +20,7 @@ spec:
     spec:
       containers:
         - name: app
-          image: nginx:latest
+          image: mikesir87/cats:3.0
           imagePullPolicy: always
           ports:
             - containerPort: 3000
