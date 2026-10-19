@@ -20,8 +20,8 @@ spec:
     spec:
       containers:
         - name: app
-          image: mikesir87/cats:3.0
-          imagePullPolicy: always
+          image: app-js:k3s-main
+          imagePullPolicy: Never
           ports:
             - containerPort: 3000
           readinessProbe:
