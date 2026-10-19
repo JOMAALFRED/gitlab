@@ -20,8 +20,8 @@ spec:
     spec:
       containers:
         - name: app
-          image: app-js:k3s-main
-          imagePullPolicy: Never
+          image: nginx:latest
+         # imagePullPolicy: Never
           ports:
             - containerPort: 3000
           readinessProbe:
